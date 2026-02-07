@@ -143,9 +143,11 @@ arha_firmware/
 
 ## Building the Project
 
-1. Open the project in STM32CubeIDE
-2. Build the project: `Project > Build All` (Ctrl+B)
-3. Flash to target: `Run > Debug` (F11)
+1. Run the arha_firmware.ioc file with CubeMX (double click the file)
+2. Generate the code in CubeMX
+3. When prompted by CubeMX select "Open Project" button. This should open STM32CubeIDE
+4. In the open project select Project > Build All
+5. Code should be ready to deploy with the green play button
 
 Alternatively, use the command line:
 ```bash
