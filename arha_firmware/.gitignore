@@ -12,6 +12,7 @@
 # Build artifacts
 Debug/
 Release/
+build/
 *.elf
 *.bin
 *.hex

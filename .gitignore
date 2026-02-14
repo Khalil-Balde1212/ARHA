@@ -21,6 +21,7 @@ Release/
 
 # Dependency files
 *.d
+*.lst
 
 # Generated files
 *.ioc.bak
