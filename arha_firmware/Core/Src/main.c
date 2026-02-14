@@ -151,6 +151,13 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  extern void StartBlinkTask(void *argument);
+  const osThreadAttr_t blinkTask_attributes = {
+    .name = "blinkTask",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t) osPriorityNormal,
+  };
+  osThreadNew(StartBlinkTask, NULL, &blinkTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -167,7 +174,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    /* Blink code is in StartDefaultTask */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -442,7 +448,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void StartBlinkTask(void *argument)
+{
+  for(;;)
+  {
+    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+    osDelay(100);
+  }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -460,8 +473,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    osDelay(500);
+    osDelay(1000);
   }
   /* USER CODE END 5 */
 }
