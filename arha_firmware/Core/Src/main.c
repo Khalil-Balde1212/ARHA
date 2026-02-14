@@ -167,7 +167,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    /* Blink code is in StartDefaultTask */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

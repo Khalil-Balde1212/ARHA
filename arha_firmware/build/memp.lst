@@ -1,0 +1,1664 @@
+ARM GAS  /tmp/ccim3mpb.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 1
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"memp.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.rodata.do_memp_malloc_pool.str1.4,"aMS",%progbits,1
+  17              		.align	2
+  18              	.LC0:
+  19 0000 4D696464 		.ascii	"Middlewares/Third_Party/LwIP/src/core/memp.c\000"
+  19      6C657761 
+  19      7265732F 
+  19      54686972 
+  19      645F5061 
+  20 002d 000000   		.align	2
+  21              	.LC1:
+  22 0030 6D656D70 		.ascii	"memp_malloc: memp properly aligned\000"
+  22      5F6D616C 
+  22      6C6F633A 
+  22      206D656D 
+  22      70207072 
+  23 0053 00       		.align	2
+  24              	.LC2:
+  25 0054 41737365 		.ascii	"Assertion \"%s\" failed at line %d in %s\012\000"
+  25      7274696F 
+  25      6E202225 
+  25      73222066 
+  25      61696C65 
+  26              		.section	.text.do_memp_malloc_pool,"ax",%progbits
+  27              		.align	1
+  28              		.arch armv7e-m
+  29              		.syntax unified
+  30              		.thumb
+  31              		.thumb_func
+  32              		.fpu fpv5-d16
+  34              	do_memp_malloc_pool:
+  35              	.LVL0:
+  36              	.LFB175:
+  37              		.file 1 "Middlewares/Third_Party/LwIP/src/core/memp.c"
+   1:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+   2:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @file
+   3:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Dynamic pool memory manager
+   4:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+   5:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * lwIP has dedicated pools for many structures (netconn, protocol control blocks,
+   6:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * packet buffers, ...). All these pools are managed here.
+   7:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+   8:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @defgroup mempool Memory pools
+   9:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @ingroup infrastructure
+ARM GAS  /tmp/ccim3mpb.s 			page 2
+
+
+  10:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Custom memory pools
+  11:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  12:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+  13:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  14:Middlewares/Third_Party/LwIP/src/core/memp.c **** /*
+  15:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+  16:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * All rights reserved.
+  17:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  18:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  19:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * are permitted provided that the following conditions are met:
+  20:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  21:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  22:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *    this list of conditions and the following disclaimer.
+  23:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  24:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *    this list of conditions and the following disclaimer in the documentation
+  25:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *    and/or other materials provided with the distribution.
+  26:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * 3. The name of the author may not be used to endorse or promote products
+  27:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *    derived from this software without specific prior written permission.
+  28:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  29:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  30:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  32:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  33:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  34:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  35:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  36:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  37:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  38:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * OF SUCH DAMAGE.
+  39:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  40:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * This file is part of the lwIP TCP/IP stack.
+  41:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  42:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Author: Adam Dunkels <adam@sics.se>
+  43:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+  44:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+  45:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  46:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/opt.h"
+  47:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  48:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/memp.h"
+  49:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/sys.h"
+  50:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/stats.h"
+  51:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  52:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include <string.h>
+  53:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  54:Middlewares/Third_Party/LwIP/src/core/memp.c **** /* Make sure we include everything we need for size calculation required by memp_std.h */
+  55:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/pbuf.h"
+  56:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/raw.h"
+  57:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/udp.h"
+  58:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/tcp.h"
+  59:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/tcp_priv.h"
+  60:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/altcp.h"
+  61:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/ip4_frag.h"
+  62:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/netbuf.h"
+  63:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/api.h"
+  64:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/tcpip_priv.h"
+  65:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/api_msg.h"
+  66:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/sockets_priv.h"
+ARM GAS  /tmp/ccim3mpb.s 			page 3
+
+
+  67:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/etharp.h"
+  68:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/igmp.h"
+  69:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/timeouts.h"
+  70:Middlewares/Third_Party/LwIP/src/core/memp.c **** /* needed by default MEMP_NUM_SYS_TIMEOUT */
+  71:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "netif/ppp/ppp_opts.h"
+  72:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/netdb.h"
+  73:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/dns.h"
+  74:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/nd6_priv.h"
+  75:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/ip6_frag.h"
+  76:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/mld6.h"
+  77:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  78:Middlewares/Third_Party/LwIP/src/core/memp.c **** #define LWIP_MEMPOOL(name,num,size,desc) LWIP_MEMPOOL_DECLARE(name,num,size,desc)
+  79:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/memp_std.h"
+  80:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  81:Middlewares/Third_Party/LwIP/src/core/memp.c **** const struct memp_desc *const memp_pools[MEMP_MAX] = {
+  82:Middlewares/Third_Party/LwIP/src/core/memp.c **** #define LWIP_MEMPOOL(name,num,size,desc) &memp_ ## name,
+  83:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include "lwip/priv/memp_std.h"
+  84:Middlewares/Third_Party/LwIP/src/core/memp.c **** };
+  85:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  86:Middlewares/Third_Party/LwIP/src/core/memp.c **** #ifdef LWIP_HOOK_FILENAME
+  87:Middlewares/Third_Party/LwIP/src/core/memp.c **** #include LWIP_HOOK_FILENAME
+  88:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+  89:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  90:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC && MEMP_OVERFLOW_CHECK >= 2
+  91:Middlewares/Third_Party/LwIP/src/core/memp.c **** #undef MEMP_OVERFLOW_CHECK
+  92:Middlewares/Third_Party/LwIP/src/core/memp.c **** /* MEMP_OVERFLOW_CHECK >= 2 does not work with MEMP_MEM_MALLOC, use 1 instead */
+  93:Middlewares/Third_Party/LwIP/src/core/memp.c **** #define MEMP_OVERFLOW_CHECK 1
+  94:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+  95:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+  96:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_SANITY_CHECK && !MEMP_MEM_MALLOC
+  97:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+  98:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Check that memp-lists don't form a circle, using "Floyd's cycle-finding algorithm".
+  99:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 100:Middlewares/Third_Party/LwIP/src/core/memp.c **** static int
+ 101:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_sanity(const struct memp_desc *desc)
+ 102:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 103:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *t, *h;
+ 104:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 105:Middlewares/Third_Party/LwIP/src/core/memp.c ****   t = *desc->tab;
+ 106:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (t != NULL) {
+ 107:Middlewares/Third_Party/LwIP/src/core/memp.c ****     for (h = t->next; (t != NULL) && (h != NULL); t = t->next,
+ 108:Middlewares/Third_Party/LwIP/src/core/memp.c ****          h = ((h->next != NULL) ? h->next->next : NULL)) {
+ 109:Middlewares/Third_Party/LwIP/src/core/memp.c ****       if (t == h) {
+ 110:Middlewares/Third_Party/LwIP/src/core/memp.c ****         return 0;
+ 111:Middlewares/Third_Party/LwIP/src/core/memp.c ****       }
+ 112:Middlewares/Third_Party/LwIP/src/core/memp.c ****     }
+ 113:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 114:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 115:Middlewares/Third_Party/LwIP/src/core/memp.c ****   return 1;
+ 116:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 117:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_SANITY_CHECK && !MEMP_MEM_MALLOC */
+ 118:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 119:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 120:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 121:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Check if a memp element was victim of an overflow or underflow
+ 122:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * (e.g. the restricted area after/before it has been altered)
+ 123:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ARM GAS  /tmp/ccim3mpb.s 			page 4
+
+
+ 124:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param p the memp element to check
+ 125:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param desc the pool p comes from
+ 126:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 127:Middlewares/Third_Party/LwIP/src/core/memp.c **** static void
+ 128:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_overflow_check_element(struct memp *p, const struct memp_desc *desc)
+ 129:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 130:Middlewares/Third_Party/LwIP/src/core/memp.c ****   mem_overflow_check_raw((u8_t *)p + MEMP_SIZE, desc->size, "pool ", desc->desc);
+ 131:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 132:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 133:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 134:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Initialize the restricted area of on memp element.
+ 135:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 136:Middlewares/Third_Party/LwIP/src/core/memp.c **** static void
+ 137:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_overflow_init_element(struct memp *p, const struct memp_desc *desc)
+ 138:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 139:Middlewares/Third_Party/LwIP/src/core/memp.c ****   mem_overflow_init_raw((u8_t *)p + MEMP_SIZE, desc->size);
+ 140:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 141:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 142:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK >= 2
+ 143:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 144:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Do an overflow check for all elements in every pool.
+ 145:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 146:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @see memp_overflow_check_element for a description of the check
+ 147:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 148:Middlewares/Third_Party/LwIP/src/core/memp.c **** static void
+ 149:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_overflow_check_all(void)
+ 150:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 151:Middlewares/Third_Party/LwIP/src/core/memp.c ****   u16_t i, j;
+ 152:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *p;
+ 153:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_DECL_PROTECT(old_level);
+ 154:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_PROTECT(old_level);
+ 155:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 156:Middlewares/Third_Party/LwIP/src/core/memp.c ****   for (i = 0; i < MEMP_MAX; ++i) {
+ 157:Middlewares/Third_Party/LwIP/src/core/memp.c ****     p = (struct memp *)LWIP_MEM_ALIGN(memp_pools[i]->base);
+ 158:Middlewares/Third_Party/LwIP/src/core/memp.c ****     for (j = 0; j < memp_pools[i]->num; ++j) {
+ 159:Middlewares/Third_Party/LwIP/src/core/memp.c ****       memp_overflow_check_element(p, memp_pools[i]);
+ 160:Middlewares/Third_Party/LwIP/src/core/memp.c ****       p = LWIP_ALIGNMENT_CAST(struct memp *, ((u8_t *)p + MEMP_SIZE + memp_pools[i]->size + MEM_SAN
+ 161:Middlewares/Third_Party/LwIP/src/core/memp.c ****     }
+ 162:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 163:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_UNPROTECT(old_level);
+ 164:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 165:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK >= 2 */
+ 166:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 167:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 168:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 169:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Initialize custom memory pool.
+ 170:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Related functions: memp_malloc_pool, memp_free_pool
+ 171:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 172:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param desc pool to initialize
+ 173:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 174:Middlewares/Third_Party/LwIP/src/core/memp.c **** void
+ 175:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_init_pool(const struct memp_desc *desc)
+ 176:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 177:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC
+ 178:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_UNUSED_ARG(desc);
+ 179:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 180:Middlewares/Third_Party/LwIP/src/core/memp.c ****   int i;
+ARM GAS  /tmp/ccim3mpb.s 			page 5
+
+
+ 181:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *memp;
+ 182:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 183:Middlewares/Third_Party/LwIP/src/core/memp.c ****   *desc->tab = NULL;
+ 184:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)LWIP_MEM_ALIGN(desc->base);
+ 185:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_INIT
+ 186:Middlewares/Third_Party/LwIP/src/core/memp.c ****   /* force memset on pool memory */
+ 187:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memset(memp, 0, (size_t)desc->num * (MEMP_SIZE + desc->size
+ 188:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 189:Middlewares/Third_Party/LwIP/src/core/memp.c ****                                        + MEM_SANITY_REGION_AFTER_ALIGNED
+ 190:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 191:Middlewares/Third_Party/LwIP/src/core/memp.c ****                                       ));
+ 192:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 193:Middlewares/Third_Party/LwIP/src/core/memp.c ****   /* create a linked list of memp elements */
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****   for (i = 0; i < desc->num; ++i) {
+ 195:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 196:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp;
+ 197:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 198:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_overflow_init_element(memp, desc);
+ 199:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 200:Middlewares/Third_Party/LwIP/src/core/memp.c ****     /* cast through void* to get rid of alignment warnings */
+ 201:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp = (struct memp *)(void *)((u8_t *)memp + MEMP_SIZE + desc->size
+ 202:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 203:Middlewares/Third_Party/LwIP/src/core/memp.c ****                                    + MEM_SANITY_REGION_AFTER_ALIGNED
+ 204:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 205:Middlewares/Third_Party/LwIP/src/core/memp.c ****                                   );
+ 206:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 207:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_STATS
+ 208:Middlewares/Third_Party/LwIP/src/core/memp.c ****   desc->stats->avail = desc->num;
+ 209:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_STATS */
+ 210:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* !MEMP_MEM_MALLOC */
+ 211:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 212:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_STATS && (defined(LWIP_DEBUG) || LWIP_STATS_DISPLAY)
+ 213:Middlewares/Third_Party/LwIP/src/core/memp.c ****   desc->stats->name  = desc->desc;
+ 214:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_STATS && (defined(LWIP_DEBUG) || LWIP_STATS_DISPLAY) */
+ 215:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 216:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 217:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 218:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Initializes lwIP built-in pools.
+ 219:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Related functions: memp_malloc, memp_free
+ 220:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 221:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Carves out memp_memory into linked lists for each pool-type.
+ 222:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 223:Middlewares/Third_Party/LwIP/src/core/memp.c **** void
+ 224:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_init(void)
+ 225:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 226:Middlewares/Third_Party/LwIP/src/core/memp.c ****   u16_t i;
+ 227:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 228:Middlewares/Third_Party/LwIP/src/core/memp.c ****   /* for every pool: */
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****   for (i = 0; i < LWIP_ARRAYSIZE(memp_pools); i++) {
+ 230:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 231:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 232:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if LWIP_STATS && MEMP_STATS
+ 233:Middlewares/Third_Party/LwIP/src/core/memp.c ****     lwip_stats.memp[i] = memp_pools[i]->stats;
+ 234:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 235:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 236:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 237:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK >= 2
+ARM GAS  /tmp/ccim3mpb.s 			page 6
+
+
+ 238:Middlewares/Third_Party/LwIP/src/core/memp.c ****   /* check everything a first time to see if it worked */
+ 239:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp_overflow_check_all();
+ 240:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK >= 2 */
+ 241:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 242:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 243:Middlewares/Third_Party/LwIP/src/core/memp.c **** static void *
+ 244:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_OVERFLOW_CHECK
+ 245:Middlewares/Third_Party/LwIP/src/core/memp.c **** do_memp_malloc_pool(const struct memp_desc *desc)
+ 246:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 247:Middlewares/Third_Party/LwIP/src/core/memp.c **** do_memp_malloc_pool_fn(const struct memp_desc *desc, const char *file, const int line)
+ 248:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 249:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+  38              		.loc 1 249 1 view -0
+  39              		.cfi_startproc
+  40              		@ args = 0, pretend = 0, frame = 0
+  41              		@ frame_needed = 0, uses_anonymous_args = 0
+  42              		.loc 1 249 1 is_stmt 0 view .LVU1
+  43 0000 38B5     		push	{r3, r4, r5, lr}
+  44              	.LCFI0:
+  45              		.cfi_def_cfa_offset 16
+  46              		.cfi_offset 3, -16
+  47              		.cfi_offset 4, -12
+  48              		.cfi_offset 5, -8
+  49              		.cfi_offset 14, -4
+  50 0002 0446     		mov	r4, r0
+ 250:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *memp;
+  51              		.loc 1 250 3 is_stmt 1 view .LVU2
+ 251:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_DECL_PROTECT(old_level);
+  52              		.loc 1 251 3 view .LVU3
+ 252:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 253:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC
+ 254:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)mem_malloc(MEMP_SIZE + MEMP_ALIGN_SIZE(desc->size));
+ 255:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_PROTECT(old_level);
+ 256:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else /* MEMP_MEM_MALLOC */
+ 257:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_PROTECT(old_level);
+  53              		.loc 1 257 3 view .LVU4
+  54 0004 FFF7FEFF 		bl	sys_arch_protect
+  55              	.LVL1:
+  56              		.loc 1 257 3 is_stmt 0 view .LVU5
+  57 0008 0546     		mov	r5, r0
+  58              	.LVL2:
+ 258:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 259:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = *desc->tab;
+  59              		.loc 1 259 3 is_stmt 1 view .LVU6
+  60              		.loc 1 259 15 is_stmt 0 view .LVU7
+  61 000a A368     		ldr	r3, [r4, #8]
+  62              		.loc 1 259 8 view .LVU8
+  63 000c 1C68     		ldr	r4, [r3]
+  64              	.LVL3:
+ 260:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_MEM_MALLOC */
+ 261:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 262:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (memp != NULL) {
+  65              		.loc 1 262 3 is_stmt 1 view .LVU9
+  66              		.loc 1 262 6 is_stmt 0 view .LVU10
+  67 000e 8CB1     		cbz	r4, .L2
+ 263:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_MEM_MALLOC
+ 264:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK == 1
+ARM GAS  /tmp/ccim3mpb.s 			page 7
+
+
+ 265:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_overflow_check_element(memp, desc);
+ 266:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 267:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 268:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp->next;
+  68              		.loc 1 268 5 is_stmt 1 view .LVU11
+  69              		.loc 1 268 22 is_stmt 0 view .LVU12
+  70 0010 2268     		ldr	r2, [r4]
+  71              		.loc 1 268 16 view .LVU13
+  72 0012 1A60     		str	r2, [r3]
+ 269:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 270:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = NULL;
+ 271:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 272:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* !MEMP_MEM_MALLOC */
+ 273:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 274:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->file = file;
+ 275:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->line = line;
+ 276:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC
+ 277:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_overflow_init_element(memp, desc);
+ 278:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_MEM_MALLOC */
+ 279:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 280:Middlewares/Third_Party/LwIP/src/core/memp.c ****     LWIP_ASSERT("memp_malloc: memp properly aligned",
+  73              		.loc 1 280 5 is_stmt 1 view .LVU14
+  74              		.loc 1 280 5 view .LVU15
+  75 0014 14F0030F 		tst	r4, #3
+  76 0018 04D1     		bne	.L6
+  77              	.LVL4:
+  78              	.L3:
+  79              		.loc 1 280 5 discriminator 3 view .LVU16
+  80              		.loc 1 280 5 discriminator 3 view .LVU17
+ 281:Middlewares/Third_Party/LwIP/src/core/memp.c ****                 ((mem_ptr_t)memp % MEM_ALIGNMENT) == 0);
+ 282:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_STATS
+ 283:Middlewares/Third_Party/LwIP/src/core/memp.c ****     desc->stats->used++;
+ 284:Middlewares/Third_Party/LwIP/src/core/memp.c ****     if (desc->stats->used > desc->stats->max) {
+ 285:Middlewares/Third_Party/LwIP/src/core/memp.c ****       desc->stats->max = desc->stats->used;
+ 286:Middlewares/Third_Party/LwIP/src/core/memp.c ****     }
+ 287:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 288:Middlewares/Third_Party/LwIP/src/core/memp.c ****     SYS_ARCH_UNPROTECT(old_level);
+  81              		.loc 1 288 5 discriminator 3 view .LVU18
+  82 001a 2846     		mov	r0, r5
+  83 001c FFF7FEFF 		bl	sys_arch_unprotect
+  84              	.LVL5:
+ 289:Middlewares/Third_Party/LwIP/src/core/memp.c ****     /* cast through u8_t* to get rid of alignment warnings */
+ 290:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return ((u8_t *)memp + MEMP_SIZE);
+  85              		.loc 1 290 5 discriminator 3 view .LVU19
+  86              	.L1:
+ 291:Middlewares/Third_Party/LwIP/src/core/memp.c ****   } else {
+ 292:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_STATS
+ 293:Middlewares/Third_Party/LwIP/src/core/memp.c ****     desc->stats->err++;
+ 294:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 295:Middlewares/Third_Party/LwIP/src/core/memp.c ****     SYS_ARCH_UNPROTECT(old_level);
+ 296:Middlewares/Third_Party/LwIP/src/core/memp.c ****     LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("memp_malloc: out of memory in pool %s\n", de
+ 297:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 298:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 299:Middlewares/Third_Party/LwIP/src/core/memp.c ****   return NULL;
+ 300:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+  87              		.loc 1 300 1 is_stmt 0 view .LVU20
+  88 0020 2046     		mov	r0, r4
+ARM GAS  /tmp/ccim3mpb.s 			page 8
+
+
+  89 0022 38BD     		pop	{r3, r4, r5, pc}
+  90              	.LVL6:
+  91              	.L6:
+ 280:Middlewares/Third_Party/LwIP/src/core/memp.c ****                 ((mem_ptr_t)memp % MEM_ALIGNMENT) == 0);
+  92              		.loc 1 280 5 is_stmt 1 discriminator 1 view .LVU21
+ 280:Middlewares/Third_Party/LwIP/src/core/memp.c ****                 ((mem_ptr_t)memp % MEM_ALIGNMENT) == 0);
+  93              		.loc 1 280 5 discriminator 1 view .LVU22
+  94 0024 054B     		ldr	r3, .L7
+  95 0026 4FF48C72 		mov	r2, #280
+  96 002a 0549     		ldr	r1, .L7+4
+  97 002c 0548     		ldr	r0, .L7+8
+  98              	.LVL7:
+ 280:Middlewares/Third_Party/LwIP/src/core/memp.c ****                 ((mem_ptr_t)memp % MEM_ALIGNMENT) == 0);
+  99              		.loc 1 280 5 is_stmt 0 discriminator 1 view .LVU23
+ 100 002e FFF7FEFF 		bl	printf
+ 101              	.LVL8:
+ 102 0032 F2E7     		b	.L3
+ 103              	.LVL9:
+ 104              	.L2:
+ 295:Middlewares/Third_Party/LwIP/src/core/memp.c ****     LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("memp_malloc: out of memory in pool %s\n", de
+ 105              		.loc 1 295 5 is_stmt 1 view .LVU24
+ 106 0034 FFF7FEFF 		bl	sys_arch_unprotect
+ 107              	.LVL10:
+ 296:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 108              		.loc 1 296 110 view .LVU25
+ 299:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 109              		.loc 1 299 3 view .LVU26
+ 299:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 110              		.loc 1 299 10 is_stmt 0 view .LVU27
+ 111 0038 F2E7     		b	.L1
+ 112              	.L8:
+ 113 003a 00BF     		.align	2
+ 114              	.L7:
+ 115 003c 00000000 		.word	.LC0
+ 116 0040 30000000 		.word	.LC1
+ 117 0044 54000000 		.word	.LC2
+ 118              		.cfi_endproc
+ 119              	.LFE175:
+ 121              		.section	.rodata.do_memp_free_pool.str1.4,"aMS",%progbits,1
+ 122              		.align	2
+ 123              	.LC3:
+ 124 0000 6D656D70 		.ascii	"memp_free: mem properly aligned\000"
+ 124      5F667265 
+ 124      653A206D 
+ 124      656D2070 
+ 124      726F7065 
+ 125              		.section	.text.do_memp_free_pool,"ax",%progbits
+ 126              		.align	1
+ 127              		.syntax unified
+ 128              		.thumb
+ 129              		.thumb_func
+ 130              		.fpu fpv5-d16
+ 132              	do_memp_free_pool:
+ 133              	.LVL11:
+ 134              	.LFB178:
+ 301:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 302:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ARM GAS  /tmp/ccim3mpb.s 			page 9
+
+
+ 303:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Get an element from a custom pool.
+ 304:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 305:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param desc the pool to get an element from
+ 306:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 307:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @return a pointer to the allocated memory or a NULL pointer on error
+ 308:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 309:Middlewares/Third_Party/LwIP/src/core/memp.c **** void *
+ 310:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_OVERFLOW_CHECK
+ 311:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_malloc_pool(const struct memp_desc *desc)
+ 312:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 313:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_malloc_pool_fn(const struct memp_desc *desc, const char *file, const int line)
+ 314:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 315:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("invalid pool desc", desc != NULL);
+ 317:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 318:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return NULL;
+ 319:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 320:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 321:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_OVERFLOW_CHECK
+ 322:Middlewares/Third_Party/LwIP/src/core/memp.c ****   return do_memp_malloc_pool(desc);
+ 323:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 324:Middlewares/Third_Party/LwIP/src/core/memp.c ****   return do_memp_malloc_pool_fn(desc, file, line);
+ 325:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 326:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 327:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 328:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 329:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Get an element from a specific pool.
+ 330:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 331:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param type the pool to get an element from
+ 332:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 333:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @return a pointer to the allocated memory or a NULL pointer on error
+ 334:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 335:Middlewares/Third_Party/LwIP/src/core/memp.c **** void *
+ 336:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_OVERFLOW_CHECK
+ 337:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_malloc(memp_t type)
+ 338:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 339:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_malloc_fn(memp_t type, const char *file, const int line)
+ 340:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 341:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 342:Middlewares/Third_Party/LwIP/src/core/memp.c ****   void *memp;
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ERROR("memp_malloc: type < MEMP_MAX", (type < MEMP_MAX), return NULL;);
+ 344:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 345:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK >= 2
+ 346:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp_overflow_check_all();
+ 347:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK >= 2 */
+ 348:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 349:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if !MEMP_OVERFLOW_CHECK
+ 350:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = do_memp_malloc_pool(memp_pools[type]);
+ 351:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 352:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = do_memp_malloc_pool_fn(memp_pools[type], file, line);
+ 353:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 354:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 355:Middlewares/Third_Party/LwIP/src/core/memp.c ****   return memp;
+ 356:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 357:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 358:Middlewares/Third_Party/LwIP/src/core/memp.c **** static void
+ 359:Middlewares/Third_Party/LwIP/src/core/memp.c **** do_memp_free_pool(const struct memp_desc *desc, void *mem)
+ARM GAS  /tmp/ccim3mpb.s 			page 10
+
+
+ 360:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 135              		.loc 1 360 1 is_stmt 1 view -0
+ 136              		.cfi_startproc
+ 137              		@ args = 0, pretend = 0, frame = 0
+ 138              		@ frame_needed = 0, uses_anonymous_args = 0
+ 139              		.loc 1 360 1 is_stmt 0 view .LVU29
+ 140 0000 38B5     		push	{r3, r4, r5, lr}
+ 141              	.LCFI1:
+ 142              		.cfi_def_cfa_offset 16
+ 143              		.cfi_offset 3, -16
+ 144              		.cfi_offset 4, -12
+ 145              		.cfi_offset 5, -8
+ 146              		.cfi_offset 14, -4
+ 147 0002 0546     		mov	r5, r0
+ 148 0004 0C46     		mov	r4, r1
+ 361:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *memp;
+ 149              		.loc 1 361 3 is_stmt 1 view .LVU30
+ 362:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_DECL_PROTECT(old_level);
+ 150              		.loc 1 362 3 view .LVU31
+ 363:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 364:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("memp_free: mem properly aligned",
+ 151              		.loc 1 364 3 view .LVU32
+ 152              		.loc 1 364 3 view .LVU33
+ 153 0006 11F0030F 		tst	r1, #3
+ 154 000a 09D1     		bne	.L12
+ 155              	.LVL12:
+ 156              	.L10:
+ 157              		.loc 1 364 3 discriminator 3 view .LVU34
+ 158              		.loc 1 364 3 discriminator 3 view .LVU35
+ 365:Middlewares/Third_Party/LwIP/src/core/memp.c ****               ((mem_ptr_t)mem % MEM_ALIGNMENT) == 0);
+ 366:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 367:Middlewares/Third_Party/LwIP/src/core/memp.c ****   /* cast through void* to get rid of alignment warnings */
+ 368:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)(void *)((u8_t *)mem - MEMP_SIZE);
+ 159              		.loc 1 368 3 discriminator 3 view .LVU36
+ 369:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 370:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_PROTECT(old_level);
+ 160              		.loc 1 370 3 discriminator 3 view .LVU37
+ 161 000c FFF7FEFF 		bl	sys_arch_protect
+ 162              	.LVL13:
+ 371:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 372:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK == 1
+ 373:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp_overflow_check_element(memp, desc);
+ 374:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK */
+ 375:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 376:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_STATS
+ 377:Middlewares/Third_Party/LwIP/src/core/memp.c ****   desc->stats->used--;
+ 378:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 379:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 380:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC
+ 381:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_UNUSED_ARG(desc);
+ 382:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_UNPROTECT(old_level);
+ 383:Middlewares/Third_Party/LwIP/src/core/memp.c ****   mem_free(memp);
+ 384:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else /* MEMP_MEM_MALLOC */
+ 385:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp->next = *desc->tab;
+ 163              		.loc 1 385 3 discriminator 3 view .LVU38
+ 164              		.loc 1 385 21 is_stmt 0 discriminator 3 view .LVU39
+ 165 0010 AB68     		ldr	r3, [r5, #8]
+ARM GAS  /tmp/ccim3mpb.s 			page 11
+
+
+ 166              		.loc 1 385 16 discriminator 3 view .LVU40
+ 167 0012 1B68     		ldr	r3, [r3]
+ 168              		.loc 1 385 14 discriminator 3 view .LVU41
+ 169 0014 2360     		str	r3, [r4]
+ 386:Middlewares/Third_Party/LwIP/src/core/memp.c ****   *desc->tab = memp;
+ 170              		.loc 1 386 3 is_stmt 1 discriminator 3 view .LVU42
+ 171              		.loc 1 386 8 is_stmt 0 discriminator 3 view .LVU43
+ 172 0016 AB68     		ldr	r3, [r5, #8]
+ 173              		.loc 1 386 14 discriminator 3 view .LVU44
+ 174 0018 1C60     		str	r4, [r3]
+ 387:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 388:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_SANITY_CHECK
+ 389:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("memp sanity", memp_sanity(desc));
+ 390:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_SANITY_CHECK */
+ 391:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 392:Middlewares/Third_Party/LwIP/src/core/memp.c ****   SYS_ARCH_UNPROTECT(old_level);
+ 175              		.loc 1 392 3 is_stmt 1 discriminator 3 view .LVU45
+ 176 001a FFF7FEFF 		bl	sys_arch_unprotect
+ 177              	.LVL14:
+ 393:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* !MEMP_MEM_MALLOC */
+ 394:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 178              		.loc 1 394 1 is_stmt 0 discriminator 3 view .LVU46
+ 179 001e 38BD     		pop	{r3, r4, r5, pc}
+ 180              	.LVL15:
+ 181              	.L12:
+ 364:Middlewares/Third_Party/LwIP/src/core/memp.c ****               ((mem_ptr_t)mem % MEM_ALIGNMENT) == 0);
+ 182              		.loc 1 364 3 is_stmt 1 discriminator 1 view .LVU47
+ 364:Middlewares/Third_Party/LwIP/src/core/memp.c ****               ((mem_ptr_t)mem % MEM_ALIGNMENT) == 0);
+ 183              		.loc 1 364 3 discriminator 1 view .LVU48
+ 184 0020 034B     		ldr	r3, .L13
+ 185 0022 4FF4B672 		mov	r2, #364
+ 186 0026 0349     		ldr	r1, .L13+4
+ 187              	.LVL16:
+ 364:Middlewares/Third_Party/LwIP/src/core/memp.c ****               ((mem_ptr_t)mem % MEM_ALIGNMENT) == 0);
+ 188              		.loc 1 364 3 is_stmt 0 discriminator 1 view .LVU49
+ 189 0028 0348     		ldr	r0, .L13+8
+ 190              	.LVL17:
+ 364:Middlewares/Third_Party/LwIP/src/core/memp.c ****               ((mem_ptr_t)mem % MEM_ALIGNMENT) == 0);
+ 191              		.loc 1 364 3 discriminator 1 view .LVU50
+ 192 002a FFF7FEFF 		bl	printf
+ 193              	.LVL18:
+ 194 002e EDE7     		b	.L10
+ 195              	.L14:
+ 196              		.align	2
+ 197              	.L13:
+ 198 0030 00000000 		.word	.LC0
+ 199 0034 00000000 		.word	.LC3
+ 200 0038 54000000 		.word	.LC2
+ 201              		.cfi_endproc
+ 202              	.LFE178:
+ 204              		.section	.text.memp_init_pool,"ax",%progbits
+ 205              		.align	1
+ 206              		.global	memp_init_pool
+ 207              		.syntax unified
+ 208              		.thumb
+ 209              		.thumb_func
+ 210              		.fpu fpv5-d16
+ARM GAS  /tmp/ccim3mpb.s 			page 12
+
+
+ 212              	memp_init_pool:
+ 213              	.LVL19:
+ 214              	.LFB173:
+ 176:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_MALLOC
+ 215              		.loc 1 176 1 is_stmt 1 view -0
+ 216              		.cfi_startproc
+ 217              		@ args = 0, pretend = 0, frame = 0
+ 218              		@ frame_needed = 0, uses_anonymous_args = 0
+ 219              		@ link register save eliminated.
+ 180:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *memp;
+ 220              		.loc 1 180 3 view .LVU52
+ 181:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 221              		.loc 1 181 3 view .LVU53
+ 183:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)LWIP_MEM_ALIGN(desc->base);
+ 222              		.loc 1 183 3 view .LVU54
+ 183:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)LWIP_MEM_ALIGN(desc->base);
+ 223              		.loc 1 183 8 is_stmt 0 view .LVU55
+ 224 0000 8368     		ldr	r3, [r0, #8]
+ 183:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp = (struct memp *)LWIP_MEM_ALIGN(desc->base);
+ 225              		.loc 1 183 14 view .LVU56
+ 226 0002 0022     		movs	r2, #0
+ 227 0004 1A60     		str	r2, [r3]
+ 184:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_INIT
+ 228              		.loc 1 184 3 is_stmt 1 view .LVU57
+ 184:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_MEM_INIT
+ 229              		.loc 1 184 25 is_stmt 0 view .LVU58
+ 230 0006 4368     		ldr	r3, [r0, #4]
+ 231 0008 0333     		adds	r3, r3, #3
+ 232 000a 23F00303 		bic	r3, r3, #3
+ 233              	.LVL20:
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 234              		.loc 1 194 3 is_stmt 1 view .LVU59
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 235              		.loc 1 194 3 is_stmt 0 view .LVU60
+ 236 000e 07E0     		b	.L16
+ 237              	.LVL21:
+ 238              	.L17:
+ 195:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp;
+ 239              		.loc 1 195 5 is_stmt 1 discriminator 3 view .LVU61
+ 195:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp;
+ 240              		.loc 1 195 23 is_stmt 0 discriminator 3 view .LVU62
+ 241 0010 8168     		ldr	r1, [r0, #8]
+ 195:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp;
+ 242              		.loc 1 195 18 discriminator 3 view .LVU63
+ 243 0012 0968     		ldr	r1, [r1]
+ 195:Middlewares/Third_Party/LwIP/src/core/memp.c ****     *desc->tab = memp;
+ 244              		.loc 1 195 16 discriminator 3 view .LVU64
+ 245 0014 1960     		str	r1, [r3]
+ 196:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 246              		.loc 1 196 5 is_stmt 1 discriminator 3 view .LVU65
+ 196:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 247              		.loc 1 196 10 is_stmt 0 discriminator 3 view .LVU66
+ 248 0016 8168     		ldr	r1, [r0, #8]
+ 196:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 249              		.loc 1 196 16 discriminator 3 view .LVU67
+ 250 0018 0B60     		str	r3, [r1]
+ 201:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ARM GAS  /tmp/ccim3mpb.s 			page 13
+
+
+ 251              		.loc 1 201 5 is_stmt 1 discriminator 3 view .LVU68
+ 201:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 252              		.loc 1 201 67 is_stmt 0 discriminator 3 view .LVU69
+ 253 001a 0188     		ldrh	r1, [r0]
+ 201:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK
+ 254              		.loc 1 201 10 discriminator 3 view .LVU70
+ 255 001c 0B44     		add	r3, r3, r1
+ 256              	.LVL22:
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 257              		.loc 1 194 30 is_stmt 1 discriminator 3 view .LVU71
+ 258 001e 0132     		adds	r2, r2, #1
+ 259              	.LVL23:
+ 260              	.L16:
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 261              		.loc 1 194 15 discriminator 1 view .LVU72
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 262              		.loc 1 194 23 is_stmt 0 discriminator 1 view .LVU73
+ 263 0020 4188     		ldrh	r1, [r0, #2]
+ 194:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp->next = *desc->tab;
+ 264              		.loc 1 194 3 discriminator 1 view .LVU74
+ 265 0022 9142     		cmp	r1, r2
+ 266 0024 F4DC     		bgt	.L17
+ 215:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 267              		.loc 1 215 1 view .LVU75
+ 268 0026 7047     		bx	lr
+ 269              		.cfi_endproc
+ 270              	.LFE173:
+ 272              		.section	.text.memp_init,"ax",%progbits
+ 273              		.align	1
+ 274              		.global	memp_init
+ 275              		.syntax unified
+ 276              		.thumb
+ 277              		.thumb_func
+ 278              		.fpu fpv5-d16
+ 280              	memp_init:
+ 281              	.LFB174:
+ 225:Middlewares/Third_Party/LwIP/src/core/memp.c ****   u16_t i;
+ 282              		.loc 1 225 1 is_stmt 1 view -0
+ 283              		.cfi_startproc
+ 284              		@ args = 0, pretend = 0, frame = 0
+ 285              		@ frame_needed = 0, uses_anonymous_args = 0
+ 286 0000 10B5     		push	{r4, lr}
+ 287              	.LCFI2:
+ 288              		.cfi_def_cfa_offset 8
+ 289              		.cfi_offset 4, -8
+ 290              		.cfi_offset 14, -4
+ 226:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 291              		.loc 1 226 3 view .LVU77
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 292              		.loc 1 229 3 view .LVU78
+ 293              	.LVL24:
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 294              		.loc 1 229 10 is_stmt 0 view .LVU79
+ 295 0002 0024     		movs	r4, #0
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 296              		.loc 1 229 3 view .LVU80
+ 297 0004 06E0     		b	.L19
+ARM GAS  /tmp/ccim3mpb.s 			page 14
+
+
+ 298              	.LVL25:
+ 299              	.L20:
+ 230:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 300              		.loc 1 230 5 is_stmt 1 discriminator 3 view .LVU81
+ 301 0006 054B     		ldr	r3, .L22
+ 302 0008 53F82400 		ldr	r0, [r3, r4, lsl #2]
+ 303 000c FFF7FEFF 		bl	memp_init_pool
+ 304              	.LVL26:
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 305              		.loc 1 229 47 discriminator 3 view .LVU82
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 306              		.loc 1 229 48 is_stmt 0 discriminator 3 view .LVU83
+ 307 0010 0134     		adds	r4, r4, #1
+ 308              	.LVL27:
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 309              		.loc 1 229 48 discriminator 3 view .LVU84
+ 310 0012 A4B2     		uxth	r4, r4
+ 311              	.LVL28:
+ 312              	.L19:
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 313              		.loc 1 229 15 is_stmt 1 discriminator 1 view .LVU85
+ 229:Middlewares/Third_Party/LwIP/src/core/memp.c ****     memp_init_pool(memp_pools[i]);
+ 314              		.loc 1 229 3 is_stmt 0 discriminator 1 view .LVU86
+ 315 0014 0C2C     		cmp	r4, #12
+ 316 0016 F6D9     		bls	.L20
+ 241:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 317              		.loc 1 241 1 view .LVU87
+ 318 0018 10BD     		pop	{r4, pc}
+ 319              	.LVL29:
+ 320              	.L23:
+ 241:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 321              		.loc 1 241 1 view .LVU88
+ 322 001a 00BF     		.align	2
+ 323              	.L22:
+ 324 001c 00000000 		.word	.LANCHOR0
+ 325              		.cfi_endproc
+ 326              	.LFE174:
+ 328              		.section	.rodata.memp_malloc_pool.str1.4,"aMS",%progbits,1
+ 329              		.align	2
+ 330              	.LC4:
+ 331 0000 696E7661 		.ascii	"invalid pool desc\000"
+ 331      6C696420 
+ 331      706F6F6C 
+ 331      20646573 
+ 331      6300
+ 332              		.section	.text.memp_malloc_pool,"ax",%progbits
+ 333              		.align	1
+ 334              		.global	memp_malloc_pool
+ 335              		.syntax unified
+ 336              		.thumb
+ 337              		.thumb_func
+ 338              		.fpu fpv5-d16
+ 340              	memp_malloc_pool:
+ 341              	.LVL30:
+ 342              	.LFB176:
+ 315:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("invalid pool desc", desc != NULL);
+ 343              		.loc 1 315 1 is_stmt 1 view -0
+ARM GAS  /tmp/ccim3mpb.s 			page 15
+
+
+ 344              		.cfi_startproc
+ 345              		@ args = 0, pretend = 0, frame = 0
+ 346              		@ frame_needed = 0, uses_anonymous_args = 0
+ 315:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("invalid pool desc", desc != NULL);
+ 347              		.loc 1 315 1 is_stmt 0 view .LVU90
+ 348 0000 10B5     		push	{r4, lr}
+ 349              	.LCFI3:
+ 350              		.cfi_def_cfa_offset 8
+ 351              		.cfi_offset 4, -8
+ 352              		.cfi_offset 14, -4
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 353              		.loc 1 316 3 is_stmt 1 view .LVU91
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 354              		.loc 1 316 3 view .LVU92
+ 355 0002 0446     		mov	r4, r0
+ 356 0004 20B1     		cbz	r0, .L29
+ 357              	.LVL31:
+ 358              	.L25:
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 359              		.loc 1 316 3 discriminator 3 view .LVU93
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 360              		.loc 1 316 3 discriminator 3 view .LVU94
+ 317:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return NULL;
+ 361              		.loc 1 317 3 discriminator 3 view .LVU95
+ 317:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return NULL;
+ 362              		.loc 1 317 6 is_stmt 0 discriminator 3 view .LVU96
+ 363 0006 5CB1     		cbz	r4, .L27
+ 322:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 364              		.loc 1 322 3 is_stmt 1 view .LVU97
+ 322:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 365              		.loc 1 322 10 is_stmt 0 view .LVU98
+ 366 0008 2046     		mov	r0, r4
+ 367 000a FFF7FEFF 		bl	do_memp_malloc_pool
+ 368              	.LVL32:
+ 369              	.L24:
+ 326:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 370              		.loc 1 326 1 view .LVU99
+ 371 000e 10BD     		pop	{r4, pc}
+ 372              	.LVL33:
+ 373              	.L29:
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 374              		.loc 1 316 3 is_stmt 1 discriminator 1 view .LVU100
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 375              		.loc 1 316 3 discriminator 1 view .LVU101
+ 376 0010 044B     		ldr	r3, .L30
+ 377 0012 4FF49E72 		mov	r2, #316
+ 378 0016 0449     		ldr	r1, .L30+4
+ 379 0018 0448     		ldr	r0, .L30+8
+ 380              	.LVL34:
+ 316:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (desc == NULL) {
+ 381              		.loc 1 316 3 is_stmt 0 discriminator 1 view .LVU102
+ 382 001a FFF7FEFF 		bl	printf
+ 383              	.LVL35:
+ 384 001e F2E7     		b	.L25
+ 385              	.L27:
+ 318:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 386              		.loc 1 318 12 view .LVU103
+ARM GAS  /tmp/ccim3mpb.s 			page 16
+
+
+ 387 0020 2046     		mov	r0, r4
+ 388 0022 F4E7     		b	.L24
+ 389              	.L31:
+ 390              		.align	2
+ 391              	.L30:
+ 392 0024 00000000 		.word	.LC0
+ 393 0028 00000000 		.word	.LC4
+ 394 002c 54000000 		.word	.LC2
+ 395              		.cfi_endproc
+ 396              	.LFE176:
+ 398              		.section	.rodata.memp_malloc.str1.4,"aMS",%progbits,1
+ 399              		.align	2
+ 400              	.LC5:
+ 401 0000 6D656D70 		.ascii	"memp_malloc: type < MEMP_MAX\000"
+ 401      5F6D616C 
+ 401      6C6F633A 
+ 401      20747970 
+ 401      65203C20 
+ 402              		.section	.text.memp_malloc,"ax",%progbits
+ 403              		.align	1
+ 404              		.global	memp_malloc
+ 405              		.syntax unified
+ 406              		.thumb
+ 407              		.thumb_func
+ 408              		.fpu fpv5-d16
+ 410              	memp_malloc:
+ 411              	.LVL36:
+ 412              	.LFB177:
+ 341:Middlewares/Third_Party/LwIP/src/core/memp.c ****   void *memp;
+ 413              		.loc 1 341 1 is_stmt 1 view -0
+ 414              		.cfi_startproc
+ 415              		@ args = 0, pretend = 0, frame = 0
+ 416              		@ frame_needed = 0, uses_anonymous_args = 0
+ 341:Middlewares/Third_Party/LwIP/src/core/memp.c ****   void *memp;
+ 417              		.loc 1 341 1 is_stmt 0 view .LVU105
+ 418 0000 08B5     		push	{r3, lr}
+ 419              	.LCFI4:
+ 420              		.cfi_def_cfa_offset 8
+ 421              		.cfi_offset 3, -8
+ 422              		.cfi_offset 14, -4
+ 342:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ERROR("memp_malloc: type < MEMP_MAX", (type < MEMP_MAX), return NULL;);
+ 423              		.loc 1 342 3 is_stmt 1 view .LVU106
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 424              		.loc 1 343 3 view .LVU107
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 425              		.loc 1 343 3 view .LVU108
+ 426 0002 0C28     		cmp	r0, #12
+ 427 0004 05D8     		bhi	.L36
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 428              		.loc 1 343 3 discriminator 2 view .LVU109
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 429              		.loc 1 343 3 discriminator 2 view .LVU110
+ 350:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 430              		.loc 1 350 3 discriminator 2 view .LVU111
+ 350:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 431              		.loc 1 350 10 is_stmt 0 discriminator 2 view .LVU112
+ 432 0006 074B     		ldr	r3, .L37
+ARM GAS  /tmp/ccim3mpb.s 			page 17
+
+
+ 433 0008 53F82000 		ldr	r0, [r3, r0, lsl #2]
+ 434              	.LVL37:
+ 350:Middlewares/Third_Party/LwIP/src/core/memp.c **** #else
+ 435              		.loc 1 350 10 discriminator 2 view .LVU113
+ 436 000c FFF7FEFF 		bl	do_memp_malloc_pool
+ 437              	.LVL38:
+ 355:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 438              		.loc 1 355 3 is_stmt 1 discriminator 2 view .LVU114
+ 439              	.L32:
+ 356:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 440              		.loc 1 356 1 is_stmt 0 view .LVU115
+ 441 0010 08BD     		pop	{r3, pc}
+ 442              	.LVL39:
+ 443              	.L36:
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 444              		.loc 1 343 3 is_stmt 1 discriminator 1 view .LVU116
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 445              		.loc 1 343 3 discriminator 1 view .LVU117
+ 446 0012 054B     		ldr	r3, .L37+4
+ 447 0014 40F25712 		movw	r2, #343
+ 448 0018 0449     		ldr	r1, .L37+8
+ 449 001a 0548     		ldr	r0, .L37+12
+ 450              	.LVL40:
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 451              		.loc 1 343 3 is_stmt 0 discriminator 1 view .LVU118
+ 452 001c FFF7FEFF 		bl	printf
+ 453              	.LVL41:
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 454              		.loc 1 343 3 is_stmt 1 discriminator 1 view .LVU119
+ 343:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 455              		.loc 1 343 3 discriminator 1 view .LVU120
+ 456 0020 0020     		movs	r0, #0
+ 457 0022 F5E7     		b	.L32
+ 458              	.L38:
+ 459              		.align	2
+ 460              	.L37:
+ 461 0024 00000000 		.word	.LANCHOR0
+ 462 0028 00000000 		.word	.LC0
+ 463 002c 00000000 		.word	.LC5
+ 464 0030 54000000 		.word	.LC2
+ 465              		.cfi_endproc
+ 466              	.LFE177:
+ 468              		.section	.text.memp_free_pool,"ax",%progbits
+ 469              		.align	1
+ 470              		.global	memp_free_pool
+ 471              		.syntax unified
+ 472              		.thumb
+ 473              		.thumb_func
+ 474              		.fpu fpv5-d16
+ 476              	memp_free_pool:
+ 477              	.LVL42:
+ 478              	.LFB179:
+ 395:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 396:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 397:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Put a custom pool element back into its pool.
+ 398:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 399:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param desc the pool where to put mem
+ARM GAS  /tmp/ccim3mpb.s 			page 18
+
+
+ 400:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param mem the memp element to free
+ 401:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 402:Middlewares/Third_Party/LwIP/src/core/memp.c **** void
+ 403:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_free_pool(const struct memp_desc *desc, void *mem)
+ 404:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 479              		.loc 1 404 1 view -0
+ 480              		.cfi_startproc
+ 481              		@ args = 0, pretend = 0, frame = 0
+ 482              		@ frame_needed = 0, uses_anonymous_args = 0
+ 483              		.loc 1 404 1 is_stmt 0 view .LVU122
+ 484 0000 38B5     		push	{r3, r4, r5, lr}
+ 485              	.LCFI5:
+ 486              		.cfi_def_cfa_offset 16
+ 487              		.cfi_offset 3, -16
+ 488              		.cfi_offset 4, -12
+ 489              		.cfi_offset 5, -8
+ 490              		.cfi_offset 14, -4
+ 491 0002 0C46     		mov	r4, r1
+ 405:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ASSERT("invalid pool desc", desc != NULL);
+ 492              		.loc 1 405 3 is_stmt 1 view .LVU123
+ 493              		.loc 1 405 3 view .LVU124
+ 494 0004 0546     		mov	r5, r0
+ 495 0006 20B1     		cbz	r0, .L43
+ 496              	.LVL43:
+ 497              	.L40:
+ 498              		.loc 1 405 3 discriminator 3 view .LVU125
+ 499              		.loc 1 405 3 discriminator 3 view .LVU126
+ 406:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if ((desc == NULL) || (mem == NULL)) {
+ 500              		.loc 1 406 3 discriminator 3 view .LVU127
+ 501              		.loc 1 406 6 is_stmt 0 discriminator 3 view .LVU128
+ 502 0008 002C     		cmp	r4, #0
+ 503 000a 18BF     		it	ne
+ 504 000c 002D     		cmpne	r5, #0
+ 505 000e 08D1     		bne	.L44
+ 506              	.L39:
+ 407:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return;
+ 408:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 409:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 410:Middlewares/Third_Party/LwIP/src/core/memp.c ****   do_memp_free_pool(desc, mem);
+ 411:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 507              		.loc 1 411 1 view .LVU129
+ 508 0010 38BD     		pop	{r3, r4, r5, pc}
+ 509              	.LVL44:
+ 510              	.L43:
+ 405:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if ((desc == NULL) || (mem == NULL)) {
+ 511              		.loc 1 405 3 is_stmt 1 discriminator 1 view .LVU130
+ 405:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if ((desc == NULL) || (mem == NULL)) {
+ 512              		.loc 1 405 3 discriminator 1 view .LVU131
+ 513 0012 064B     		ldr	r3, .L45
+ 514 0014 40F29512 		movw	r2, #405
+ 515 0018 0549     		ldr	r1, .L45+4
+ 516              	.LVL45:
+ 405:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if ((desc == NULL) || (mem == NULL)) {
+ 517              		.loc 1 405 3 is_stmt 0 discriminator 1 view .LVU132
+ 518 001a 0648     		ldr	r0, .L45+8
+ 519              	.LVL46:
+ 405:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if ((desc == NULL) || (mem == NULL)) {
+ARM GAS  /tmp/ccim3mpb.s 			page 19
+
+
+ 520              		.loc 1 405 3 discriminator 1 view .LVU133
+ 521 001c FFF7FEFF 		bl	printf
+ 522              	.LVL47:
+ 523 0020 F2E7     		b	.L40
+ 524              	.L44:
+ 410:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 525              		.loc 1 410 3 is_stmt 1 view .LVU134
+ 526 0022 2146     		mov	r1, r4
+ 527 0024 2846     		mov	r0, r5
+ 528 0026 FFF7FEFF 		bl	do_memp_free_pool
+ 529              	.LVL48:
+ 530 002a F1E7     		b	.L39
+ 531              	.L46:
+ 532              		.align	2
+ 533              	.L45:
+ 534 002c 00000000 		.word	.LC0
+ 535 0030 00000000 		.word	.LC4
+ 536 0034 54000000 		.word	.LC2
+ 537              		.cfi_endproc
+ 538              	.LFE179:
+ 540              		.section	.rodata.memp_free.str1.4,"aMS",%progbits,1
+ 541              		.align	2
+ 542              	.LC6:
+ 543 0000 6D656D70 		.ascii	"memp_free: type < MEMP_MAX\000"
+ 543      5F667265 
+ 543      653A2074 
+ 543      79706520 
+ 543      3C204D45 
+ 544              		.section	.text.memp_free,"ax",%progbits
+ 545              		.align	1
+ 546              		.global	memp_free
+ 547              		.syntax unified
+ 548              		.thumb
+ 549              		.thumb_func
+ 550              		.fpu fpv5-d16
+ 552              	memp_free:
+ 553              	.LVL49:
+ 554              	.LFB180:
+ 412:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 413:Middlewares/Third_Party/LwIP/src/core/memp.c **** /**
+ 414:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * Put an element back into its pool.
+ 415:Middlewares/Third_Party/LwIP/src/core/memp.c ****  *
+ 416:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param type the pool where to put mem
+ 417:Middlewares/Third_Party/LwIP/src/core/memp.c ****  * @param mem the memp element to free
+ 418:Middlewares/Third_Party/LwIP/src/core/memp.c ****  */
+ 419:Middlewares/Third_Party/LwIP/src/core/memp.c **** void
+ 420:Middlewares/Third_Party/LwIP/src/core/memp.c **** memp_free(memp_t type, void *mem)
+ 421:Middlewares/Third_Party/LwIP/src/core/memp.c **** {
+ 555              		.loc 1 421 1 view -0
+ 556              		.cfi_startproc
+ 557              		@ args = 0, pretend = 0, frame = 0
+ 558              		@ frame_needed = 0, uses_anonymous_args = 0
+ 559              		.loc 1 421 1 is_stmt 0 view .LVU136
+ 560 0000 08B5     		push	{r3, lr}
+ 561              	.LCFI6:
+ 562              		.cfi_def_cfa_offset 8
+ 563              		.cfi_offset 3, -8
+ARM GAS  /tmp/ccim3mpb.s 			page 20
+
+
+ 564              		.cfi_offset 14, -4
+ 422:Middlewares/Third_Party/LwIP/src/core/memp.c **** #ifdef LWIP_HOOK_MEMP_AVAILABLE
+ 423:Middlewares/Third_Party/LwIP/src/core/memp.c ****   struct memp *old_first;
+ 424:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 425:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c ****   LWIP_ERROR("memp_free: type < MEMP_MAX", (type < MEMP_MAX), return;);
+ 565              		.loc 1 426 3 is_stmt 1 view .LVU137
+ 566              		.loc 1 426 3 view .LVU138
+ 567 0002 0C28     		cmp	r0, #12
+ 568 0004 06D8     		bhi	.L51
+ 569              		.loc 1 426 3 discriminator 2 view .LVU139
+ 570              		.loc 1 426 3 discriminator 2 view .LVU140
+ 427:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 428:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (mem == NULL) {
+ 571              		.loc 1 428 3 discriminator 2 view .LVU141
+ 572              		.loc 1 428 6 is_stmt 0 discriminator 2 view .LVU142
+ 573 0006 21B1     		cbz	r1, .L47
+ 429:Middlewares/Third_Party/LwIP/src/core/memp.c ****     return;
+ 430:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 431:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 432:Middlewares/Third_Party/LwIP/src/core/memp.c **** #if MEMP_OVERFLOW_CHECK >= 2
+ 433:Middlewares/Third_Party/LwIP/src/core/memp.c ****   memp_overflow_check_all();
+ 434:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif /* MEMP_OVERFLOW_CHECK >= 2 */
+ 435:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 436:Middlewares/Third_Party/LwIP/src/core/memp.c **** #ifdef LWIP_HOOK_MEMP_AVAILABLE
+ 437:Middlewares/Third_Party/LwIP/src/core/memp.c ****   old_first = *memp_pools[type]->tab;
+ 438:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 439:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 440:Middlewares/Third_Party/LwIP/src/core/memp.c ****   do_memp_free_pool(memp_pools[type], mem);
+ 574              		.loc 1 440 3 is_stmt 1 view .LVU143
+ 575 0008 064B     		ldr	r3, .L52
+ 576 000a 53F82000 		ldr	r0, [r3, r0, lsl #2]
+ 577              	.LVL50:
+ 578              		.loc 1 440 3 is_stmt 0 view .LVU144
+ 579 000e FFF7FEFF 		bl	do_memp_free_pool
+ 580              	.LVL51:
+ 581              	.L47:
+ 441:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 442:Middlewares/Third_Party/LwIP/src/core/memp.c **** #ifdef LWIP_HOOK_MEMP_AVAILABLE
+ 443:Middlewares/Third_Party/LwIP/src/core/memp.c ****   if (old_first == NULL) {
+ 444:Middlewares/Third_Party/LwIP/src/core/memp.c ****     LWIP_HOOK_MEMP_AVAILABLE(type);
+ 445:Middlewares/Third_Party/LwIP/src/core/memp.c ****   }
+ 446:Middlewares/Third_Party/LwIP/src/core/memp.c **** #endif
+ 447:Middlewares/Third_Party/LwIP/src/core/memp.c **** }
+ 582              		.loc 1 447 1 view .LVU145
+ 583 0012 08BD     		pop	{r3, pc}
+ 584              	.LVL52:
+ 585              	.L51:
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 586              		.loc 1 426 3 is_stmt 1 discriminator 1 view .LVU146
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 587              		.loc 1 426 3 discriminator 1 view .LVU147
+ 588 0014 044B     		ldr	r3, .L52+4
+ 589 0016 4FF4D572 		mov	r2, #426
+ 590 001a 0449     		ldr	r1, .L52+8
+ 591              	.LVL53:
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ARM GAS  /tmp/ccim3mpb.s 			page 21
+
+
+ 592              		.loc 1 426 3 is_stmt 0 discriminator 1 view .LVU148
+ 593 001c 0448     		ldr	r0, .L52+12
+ 594              	.LVL54:
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 595              		.loc 1 426 3 discriminator 1 view .LVU149
+ 596 001e FFF7FEFF 		bl	printf
+ 597              	.LVL55:
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 598              		.loc 1 426 3 is_stmt 1 discriminator 1 view .LVU150
+ 426:Middlewares/Third_Party/LwIP/src/core/memp.c **** 
+ 599              		.loc 1 426 3 discriminator 1 view .LVU151
+ 600 0022 F6E7     		b	.L47
+ 601              	.L53:
+ 602              		.align	2
+ 603              	.L52:
+ 604 0024 00000000 		.word	.LANCHOR0
+ 605 0028 00000000 		.word	.LC0
+ 606 002c 00000000 		.word	.LC6
+ 607 0030 54000000 		.word	.LC2
+ 608              		.cfi_endproc
+ 609              	.LFE180:
+ 611              		.global	memp_pools
+ 612              		.global	memp_PBUF_POOL
+ 613              		.global	memp_memory_PBUF_POOL_base
+ 614              		.global	memp_PBUF
+ 615              		.global	memp_memory_PBUF_base
+ 616              		.global	memp_SYS_TIMEOUT
+ 617              		.global	memp_memory_SYS_TIMEOUT_base
+ 618              		.global	memp_TCPIP_MSG_INPKT
+ 619              		.global	memp_memory_TCPIP_MSG_INPKT_base
+ 620              		.global	memp_TCPIP_MSG_API
+ 621              		.global	memp_memory_TCPIP_MSG_API_base
+ 622              		.global	memp_NETCONN
+ 623              		.global	memp_memory_NETCONN_base
+ 624              		.global	memp_NETBUF
+ 625              		.global	memp_memory_NETBUF_base
+ 626              		.global	memp_FRAG_PBUF
+ 627              		.global	memp_memory_FRAG_PBUF_base
+ 628              		.global	memp_REASSDATA
+ 629              		.global	memp_memory_REASSDATA_base
+ 630              		.global	memp_TCP_SEG
+ 631              		.global	memp_memory_TCP_SEG_base
+ 632              		.global	memp_TCP_PCB_LISTEN
+ 633              		.global	memp_memory_TCP_PCB_LISTEN_base
+ 634              		.global	memp_TCP_PCB
+ 635              		.global	memp_memory_TCP_PCB_base
+ 636              		.global	memp_UDP_PCB
+ 637              		.global	memp_memory_UDP_PCB_base
+ 638              		.section	.bss.memp_memory_FRAG_PBUF_base,"aw",%nobits
+ 639              		.align	2
+ 642              	memp_memory_FRAG_PBUF_base:
+ 643 0000 00000000 		.space	363
+ 643      00000000 
+ 643      00000000 
+ 643      00000000 
+ 643      00000000 
+ 644              		.section	.bss.memp_memory_NETBUF_base,"aw",%nobits
+ARM GAS  /tmp/ccim3mpb.s 			page 22
+
+
+ 645              		.align	2
+ 648              	memp_memory_NETBUF_base:
+ 649 0000 00000000 		.space	35
+ 649      00000000 
+ 649      00000000 
+ 649      00000000 
+ 649      00000000 
+ 650              		.section	.bss.memp_memory_NETCONN_base,"aw",%nobits
+ 651              		.align	2
+ 654              	memp_memory_NETCONN_base:
+ 655 0000 00000000 		.space	163
+ 655      00000000 
+ 655      00000000 
+ 655      00000000 
+ 655      00000000 
+ 656              		.section	.bss.memp_memory_PBUF_POOL_base,"aw",%nobits
+ 657              		.align	2
+ 660              	memp_memory_PBUF_POOL_base:
+ 661 0000 00000000 		.space	24835
+ 661      00000000 
+ 661      00000000 
+ 661      00000000 
+ 661      00000000 
+ 662              		.section	.bss.memp_memory_PBUF_base,"aw",%nobits
+ 663              		.align	2
+ 666              	memp_memory_PBUF_base:
+ 667 0000 00000000 		.space	259
+ 667      00000000 
+ 667      00000000 
+ 667      00000000 
+ 667      00000000 
+ 668              		.section	.bss.memp_memory_REASSDATA_base,"aw",%nobits
+ 669              		.align	2
+ 672              	memp_memory_REASSDATA_base:
+ 673 0000 00000000 		.space	163
+ 673      00000000 
+ 673      00000000 
+ 673      00000000 
+ 673      00000000 
+ 674              		.section	.bss.memp_memory_SYS_TIMEOUT_base,"aw",%nobits
+ 675              		.align	2
+ 678              	memp_memory_SYS_TIMEOUT_base:
+ 679 0000 00000000 		.space	51
+ 679      00000000 
+ 679      00000000 
+ 679      00000000 
+ 679      00000000 
+ 680              		.section	.bss.memp_memory_TCPIP_MSG_API_base,"aw",%nobits
+ 681              		.align	2
+ 684              	memp_memory_TCPIP_MSG_API_base:
+ 685 0000 00000000 		.space	131
+ 685      00000000 
+ 685      00000000 
+ 685      00000000 
+ 685      00000000 
+ 686              		.section	.bss.memp_memory_TCPIP_MSG_INPKT_base,"aw",%nobits
+ 687              		.align	2
+ARM GAS  /tmp/ccim3mpb.s 			page 23
+
+
+ 690              	memp_memory_TCPIP_MSG_INPKT_base:
+ 691 0000 00000000 		.space	131
+ 691      00000000 
+ 691      00000000 
+ 691      00000000 
+ 691      00000000 
+ 692              		.section	.bss.memp_memory_TCP_PCB_LISTEN_base,"aw",%nobits
+ 693              		.align	2
+ 696              	memp_memory_TCP_PCB_LISTEN_base:
+ 697 0000 00000000 		.space	227
+ 697      00000000 
+ 697      00000000 
+ 697      00000000 
+ 697      00000000 
+ 698              		.section	.bss.memp_memory_TCP_PCB_base,"aw",%nobits
+ 699              		.align	2
+ 702              	memp_memory_TCP_PCB_base:
+ 703 0000 00000000 		.space	783
+ 703      00000000 
+ 703      00000000 
+ 703      00000000 
+ 703      00000000 
+ 704              		.section	.bss.memp_memory_TCP_SEG_base,"aw",%nobits
+ 705              		.align	2
+ 708              	memp_memory_TCP_SEG_base:
+ 709 0000 00000000 		.space	259
+ 709      00000000 
+ 709      00000000 
+ 709      00000000 
+ 709      00000000 
+ 710              		.section	.bss.memp_memory_UDP_PCB_base,"aw",%nobits
+ 711              		.align	2
+ 714              	memp_memory_UDP_PCB_base:
+ 715 0000 00000000 		.space	131
+ 715      00000000 
+ 715      00000000 
+ 715      00000000 
+ 715      00000000 
+ 716              		.section	.bss.memp_tab_FRAG_PBUF,"aw",%nobits
+ 717              		.align	2
+ 720              	memp_tab_FRAG_PBUF:
+ 721 0000 00000000 		.space	4
+ 722              		.section	.bss.memp_tab_NETBUF,"aw",%nobits
+ 723              		.align	2
+ 726              	memp_tab_NETBUF:
+ 727 0000 00000000 		.space	4
+ 728              		.section	.bss.memp_tab_NETCONN,"aw",%nobits
+ 729              		.align	2
+ 732              	memp_tab_NETCONN:
+ 733 0000 00000000 		.space	4
+ 734              		.section	.bss.memp_tab_PBUF,"aw",%nobits
+ 735              		.align	2
+ 738              	memp_tab_PBUF:
+ 739 0000 00000000 		.space	4
+ 740              		.section	.bss.memp_tab_PBUF_POOL,"aw",%nobits
+ 741              		.align	2
+ 744              	memp_tab_PBUF_POOL:
+ARM GAS  /tmp/ccim3mpb.s 			page 24
+
+
+ 745 0000 00000000 		.space	4
+ 746              		.section	.bss.memp_tab_REASSDATA,"aw",%nobits
+ 747              		.align	2
+ 750              	memp_tab_REASSDATA:
+ 751 0000 00000000 		.space	4
+ 752              		.section	.bss.memp_tab_SYS_TIMEOUT,"aw",%nobits
+ 753              		.align	2
+ 756              	memp_tab_SYS_TIMEOUT:
+ 757 0000 00000000 		.space	4
+ 758              		.section	.bss.memp_tab_TCPIP_MSG_API,"aw",%nobits
+ 759              		.align	2
+ 762              	memp_tab_TCPIP_MSG_API:
+ 763 0000 00000000 		.space	4
+ 764              		.section	.bss.memp_tab_TCPIP_MSG_INPKT,"aw",%nobits
+ 765              		.align	2
+ 768              	memp_tab_TCPIP_MSG_INPKT:
+ 769 0000 00000000 		.space	4
+ 770              		.section	.bss.memp_tab_TCP_PCB,"aw",%nobits
+ 771              		.align	2
+ 774              	memp_tab_TCP_PCB:
+ 775 0000 00000000 		.space	4
+ 776              		.section	.bss.memp_tab_TCP_PCB_LISTEN,"aw",%nobits
+ 777              		.align	2
+ 780              	memp_tab_TCP_PCB_LISTEN:
+ 781 0000 00000000 		.space	4
+ 782              		.section	.bss.memp_tab_TCP_SEG,"aw",%nobits
+ 783              		.align	2
+ 786              	memp_tab_TCP_SEG:
+ 787 0000 00000000 		.space	4
+ 788              		.section	.bss.memp_tab_UDP_PCB,"aw",%nobits
+ 789              		.align	2
+ 792              	memp_tab_UDP_PCB:
+ 793 0000 00000000 		.space	4
+ 794              		.section	.rodata.memp_FRAG_PBUF,"a"
+ 795              		.align	2
+ 798              	memp_FRAG_PBUF:
+ 799 0000 1800     		.short	24
+ 800 0002 0F00     		.short	15
+ 801 0004 00000000 		.word	memp_memory_FRAG_PBUF_base
+ 802 0008 00000000 		.word	memp_tab_FRAG_PBUF
+ 803              		.section	.rodata.memp_NETBUF,"a"
+ 804              		.align	2
+ 807              	memp_NETBUF:
+ 808 0000 1000     		.short	16
+ 809 0002 0200     		.short	2
+ 810 0004 00000000 		.word	memp_memory_NETBUF_base
+ 811 0008 00000000 		.word	memp_tab_NETBUF
+ 812              		.section	.rodata.memp_NETCONN,"a"
+ 813              		.align	2
+ 816              	memp_NETCONN:
+ 817 0000 2800     		.short	40
+ 818 0002 0400     		.short	4
+ 819 0004 00000000 		.word	memp_memory_NETCONN_base
+ 820 0008 00000000 		.word	memp_tab_NETCONN
+ 821              		.section	.rodata.memp_PBUF,"a"
+ 822              		.align	2
+ 825              	memp_PBUF:
+ARM GAS  /tmp/ccim3mpb.s 			page 25
+
+
+ 826 0000 1000     		.short	16
+ 827 0002 1000     		.short	16
+ 828 0004 00000000 		.word	memp_memory_PBUF_base
+ 829 0008 00000000 		.word	memp_tab_PBUF
+ 830              		.section	.rodata.memp_PBUF_POOL,"a"
+ 831              		.align	2
+ 834              	memp_PBUF_POOL:
+ 835 0000 1006     		.short	1552
+ 836 0002 1000     		.short	16
+ 837 0004 00000000 		.word	memp_memory_PBUF_POOL_base
+ 838 0008 00000000 		.word	memp_tab_PBUF_POOL
+ 839              		.section	.rodata.memp_REASSDATA,"a"
+ 840              		.align	2
+ 843              	memp_REASSDATA:
+ 844 0000 2000     		.short	32
+ 845 0002 0500     		.short	5
+ 846 0004 00000000 		.word	memp_memory_REASSDATA_base
+ 847 0008 00000000 		.word	memp_tab_REASSDATA
+ 848              		.section	.rodata.memp_SYS_TIMEOUT,"a"
+ 849              		.align	2
+ 852              	memp_SYS_TIMEOUT:
+ 853 0000 1000     		.short	16
+ 854 0002 0300     		.short	3
+ 855 0004 00000000 		.word	memp_memory_SYS_TIMEOUT_base
+ 856 0008 00000000 		.word	memp_tab_SYS_TIMEOUT
+ 857              		.section	.rodata.memp_TCPIP_MSG_API,"a"
+ 858              		.align	2
+ 861              	memp_TCPIP_MSG_API:
+ 862 0000 1000     		.short	16
+ 863 0002 0800     		.short	8
+ 864 0004 00000000 		.word	memp_memory_TCPIP_MSG_API_base
+ 865 0008 00000000 		.word	memp_tab_TCPIP_MSG_API
+ 866              		.section	.rodata.memp_TCPIP_MSG_INPKT,"a"
+ 867              		.align	2
+ 870              	memp_TCPIP_MSG_INPKT:
+ 871 0000 1000     		.short	16
+ 872 0002 0800     		.short	8
+ 873 0004 00000000 		.word	memp_memory_TCPIP_MSG_INPKT_base
+ 874 0008 00000000 		.word	memp_tab_TCPIP_MSG_INPKT
+ 875              		.section	.rodata.memp_TCP_PCB,"a"
+ 876              		.align	2
+ 879              	memp_TCP_PCB:
+ 880 0000 9C00     		.short	156
+ 881 0002 0500     		.short	5
+ 882 0004 00000000 		.word	memp_memory_TCP_PCB_base
+ 883 0008 00000000 		.word	memp_tab_TCP_PCB
+ 884              		.section	.rodata.memp_TCP_PCB_LISTEN,"a"
+ 885              		.align	2
+ 888              	memp_TCP_PCB_LISTEN:
+ 889 0000 1C00     		.short	28
+ 890 0002 0800     		.short	8
+ 891 0004 00000000 		.word	memp_memory_TCP_PCB_LISTEN_base
+ 892 0008 00000000 		.word	memp_tab_TCP_PCB_LISTEN
+ 893              		.section	.rodata.memp_TCP_SEG,"a"
+ 894              		.align	2
+ 897              	memp_TCP_SEG:
+ 898 0000 1000     		.short	16
+ARM GAS  /tmp/ccim3mpb.s 			page 26
+
+
+ 899 0002 1000     		.short	16
+ 900 0004 00000000 		.word	memp_memory_TCP_SEG_base
+ 901 0008 00000000 		.word	memp_tab_TCP_SEG
+ 902              		.section	.rodata.memp_UDP_PCB,"a"
+ 903              		.align	2
+ 906              	memp_UDP_PCB:
+ 907 0000 2000     		.short	32
+ 908 0002 0400     		.short	4
+ 909 0004 00000000 		.word	memp_memory_UDP_PCB_base
+ 910 0008 00000000 		.word	memp_tab_UDP_PCB
+ 911              		.section	.rodata.memp_pools,"a"
+ 912              		.align	2
+ 913              		.set	.LANCHOR0,. + 0
+ 916              	memp_pools:
+ 917 0000 00000000 		.word	memp_UDP_PCB
+ 918 0004 00000000 		.word	memp_TCP_PCB
+ 919 0008 00000000 		.word	memp_TCP_PCB_LISTEN
+ 920 000c 00000000 		.word	memp_TCP_SEG
+ 921 0010 00000000 		.word	memp_REASSDATA
+ 922 0014 00000000 		.word	memp_FRAG_PBUF
+ 923 0018 00000000 		.word	memp_NETBUF
+ 924 001c 00000000 		.word	memp_NETCONN
+ 925 0020 00000000 		.word	memp_TCPIP_MSG_API
+ 926 0024 00000000 		.word	memp_TCPIP_MSG_INPKT
+ 927 0028 00000000 		.word	memp_SYS_TIMEOUT
+ 928 002c 00000000 		.word	memp_PBUF
+ 929 0030 00000000 		.word	memp_PBUF_POOL
+ 930              		.text
+ 931              	.Letext0:
+ 932              		.file 2 "/usr/lib/gcc/arm-none-eabi/10.3.1/include/stdint.h"
+ 933              		.file 3 "Middlewares/Third_Party/LwIP/system/arch/cc.h"
+ 934              		.file 4 "Middlewares/Third_Party/LwIP/src/include/lwip/arch.h"
+ 935              		.file 5 "Middlewares/Third_Party/LwIP/src/include/lwip/memp.h"
+ 936              		.file 6 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h"
+ 937              		.file 7 "Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_std.h"
+ 938              		.file 8 "/usr/include/newlib/stdio.h"
+ 939              		.file 9 "Middlewares/Third_Party/LwIP/src/include/lwip/sys.h"
+ARM GAS  /tmp/ccim3mpb.s 			page 27
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 memp.c
+     /tmp/ccim3mpb.s:17     .rodata.do_memp_malloc_pool.str1.4:0000000000000000 $d
+     /tmp/ccim3mpb.s:27     .text.do_memp_malloc_pool:0000000000000000 $t
+     /tmp/ccim3mpb.s:34     .text.do_memp_malloc_pool:0000000000000000 do_memp_malloc_pool
+     /tmp/ccim3mpb.s:115    .text.do_memp_malloc_pool:000000000000003c $d
+     /tmp/ccim3mpb.s:122    .rodata.do_memp_free_pool.str1.4:0000000000000000 $d
+     /tmp/ccim3mpb.s:126    .text.do_memp_free_pool:0000000000000000 $t
+     /tmp/ccim3mpb.s:132    .text.do_memp_free_pool:0000000000000000 do_memp_free_pool
+     /tmp/ccim3mpb.s:198    .text.do_memp_free_pool:0000000000000030 $d
+     /tmp/ccim3mpb.s:205    .text.memp_init_pool:0000000000000000 $t
+     /tmp/ccim3mpb.s:212    .text.memp_init_pool:0000000000000000 memp_init_pool
+     /tmp/ccim3mpb.s:273    .text.memp_init:0000000000000000 $t
+     /tmp/ccim3mpb.s:280    .text.memp_init:0000000000000000 memp_init
+     /tmp/ccim3mpb.s:324    .text.memp_init:000000000000001c $d
+     /tmp/ccim3mpb.s:329    .rodata.memp_malloc_pool.str1.4:0000000000000000 $d
+     /tmp/ccim3mpb.s:333    .text.memp_malloc_pool:0000000000000000 $t
+     /tmp/ccim3mpb.s:340    .text.memp_malloc_pool:0000000000000000 memp_malloc_pool
+     /tmp/ccim3mpb.s:392    .text.memp_malloc_pool:0000000000000024 $d
+     /tmp/ccim3mpb.s:399    .rodata.memp_malloc.str1.4:0000000000000000 $d
+     /tmp/ccim3mpb.s:403    .text.memp_malloc:0000000000000000 $t
+     /tmp/ccim3mpb.s:410    .text.memp_malloc:0000000000000000 memp_malloc
+     /tmp/ccim3mpb.s:461    .text.memp_malloc:0000000000000024 $d
+     /tmp/ccim3mpb.s:469    .text.memp_free_pool:0000000000000000 $t
+     /tmp/ccim3mpb.s:476    .text.memp_free_pool:0000000000000000 memp_free_pool
+     /tmp/ccim3mpb.s:534    .text.memp_free_pool:000000000000002c $d
+     /tmp/ccim3mpb.s:541    .rodata.memp_free.str1.4:0000000000000000 $d
+     /tmp/ccim3mpb.s:545    .text.memp_free:0000000000000000 $t
+     /tmp/ccim3mpb.s:552    .text.memp_free:0000000000000000 memp_free
+     /tmp/ccim3mpb.s:604    .text.memp_free:0000000000000024 $d
+     /tmp/ccim3mpb.s:916    .rodata.memp_pools:0000000000000000 memp_pools
+     /tmp/ccim3mpb.s:834    .rodata.memp_PBUF_POOL:0000000000000000 memp_PBUF_POOL
+     /tmp/ccim3mpb.s:660    .bss.memp_memory_PBUF_POOL_base:0000000000000000 memp_memory_PBUF_POOL_base
+     /tmp/ccim3mpb.s:825    .rodata.memp_PBUF:0000000000000000 memp_PBUF
+     /tmp/ccim3mpb.s:666    .bss.memp_memory_PBUF_base:0000000000000000 memp_memory_PBUF_base
+     /tmp/ccim3mpb.s:852    .rodata.memp_SYS_TIMEOUT:0000000000000000 memp_SYS_TIMEOUT
+     /tmp/ccim3mpb.s:678    .bss.memp_memory_SYS_TIMEOUT_base:0000000000000000 memp_memory_SYS_TIMEOUT_base
+     /tmp/ccim3mpb.s:870    .rodata.memp_TCPIP_MSG_INPKT:0000000000000000 memp_TCPIP_MSG_INPKT
+     /tmp/ccim3mpb.s:690    .bss.memp_memory_TCPIP_MSG_INPKT_base:0000000000000000 memp_memory_TCPIP_MSG_INPKT_base
+     /tmp/ccim3mpb.s:861    .rodata.memp_TCPIP_MSG_API:0000000000000000 memp_TCPIP_MSG_API
+     /tmp/ccim3mpb.s:684    .bss.memp_memory_TCPIP_MSG_API_base:0000000000000000 memp_memory_TCPIP_MSG_API_base
+     /tmp/ccim3mpb.s:816    .rodata.memp_NETCONN:0000000000000000 memp_NETCONN
+     /tmp/ccim3mpb.s:654    .bss.memp_memory_NETCONN_base:0000000000000000 memp_memory_NETCONN_base
+     /tmp/ccim3mpb.s:807    .rodata.memp_NETBUF:0000000000000000 memp_NETBUF
+     /tmp/ccim3mpb.s:648    .bss.memp_memory_NETBUF_base:0000000000000000 memp_memory_NETBUF_base
+     /tmp/ccim3mpb.s:798    .rodata.memp_FRAG_PBUF:0000000000000000 memp_FRAG_PBUF
+     /tmp/ccim3mpb.s:642    .bss.memp_memory_FRAG_PBUF_base:0000000000000000 memp_memory_FRAG_PBUF_base
+     /tmp/ccim3mpb.s:843    .rodata.memp_REASSDATA:0000000000000000 memp_REASSDATA
+     /tmp/ccim3mpb.s:672    .bss.memp_memory_REASSDATA_base:0000000000000000 memp_memory_REASSDATA_base
+     /tmp/ccim3mpb.s:897    .rodata.memp_TCP_SEG:0000000000000000 memp_TCP_SEG
+     /tmp/ccim3mpb.s:708    .bss.memp_memory_TCP_SEG_base:0000000000000000 memp_memory_TCP_SEG_base
+     /tmp/ccim3mpb.s:888    .rodata.memp_TCP_PCB_LISTEN:0000000000000000 memp_TCP_PCB_LISTEN
+     /tmp/ccim3mpb.s:696    .bss.memp_memory_TCP_PCB_LISTEN_base:0000000000000000 memp_memory_TCP_PCB_LISTEN_base
+     /tmp/ccim3mpb.s:879    .rodata.memp_TCP_PCB:0000000000000000 memp_TCP_PCB
+     /tmp/ccim3mpb.s:702    .bss.memp_memory_TCP_PCB_base:0000000000000000 memp_memory_TCP_PCB_base
+     /tmp/ccim3mpb.s:906    .rodata.memp_UDP_PCB:0000000000000000 memp_UDP_PCB
+     /tmp/ccim3mpb.s:714    .bss.memp_memory_UDP_PCB_base:0000000000000000 memp_memory_UDP_PCB_base
+ARM GAS  /tmp/ccim3mpb.s 			page 28
+
+
+     /tmp/ccim3mpb.s:639    .bss.memp_memory_FRAG_PBUF_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:645    .bss.memp_memory_NETBUF_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:651    .bss.memp_memory_NETCONN_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:657    .bss.memp_memory_PBUF_POOL_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:663    .bss.memp_memory_PBUF_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:669    .bss.memp_memory_REASSDATA_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:675    .bss.memp_memory_SYS_TIMEOUT_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:681    .bss.memp_memory_TCPIP_MSG_API_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:687    .bss.memp_memory_TCPIP_MSG_INPKT_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:693    .bss.memp_memory_TCP_PCB_LISTEN_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:699    .bss.memp_memory_TCP_PCB_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:705    .bss.memp_memory_TCP_SEG_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:711    .bss.memp_memory_UDP_PCB_base:0000000000000000 $d
+     /tmp/ccim3mpb.s:717    .bss.memp_tab_FRAG_PBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:720    .bss.memp_tab_FRAG_PBUF:0000000000000000 memp_tab_FRAG_PBUF
+     /tmp/ccim3mpb.s:723    .bss.memp_tab_NETBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:726    .bss.memp_tab_NETBUF:0000000000000000 memp_tab_NETBUF
+     /tmp/ccim3mpb.s:729    .bss.memp_tab_NETCONN:0000000000000000 $d
+     /tmp/ccim3mpb.s:732    .bss.memp_tab_NETCONN:0000000000000000 memp_tab_NETCONN
+     /tmp/ccim3mpb.s:735    .bss.memp_tab_PBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:738    .bss.memp_tab_PBUF:0000000000000000 memp_tab_PBUF
+     /tmp/ccim3mpb.s:741    .bss.memp_tab_PBUF_POOL:0000000000000000 $d
+     /tmp/ccim3mpb.s:744    .bss.memp_tab_PBUF_POOL:0000000000000000 memp_tab_PBUF_POOL
+     /tmp/ccim3mpb.s:747    .bss.memp_tab_REASSDATA:0000000000000000 $d
+     /tmp/ccim3mpb.s:750    .bss.memp_tab_REASSDATA:0000000000000000 memp_tab_REASSDATA
+     /tmp/ccim3mpb.s:753    .bss.memp_tab_SYS_TIMEOUT:0000000000000000 $d
+     /tmp/ccim3mpb.s:756    .bss.memp_tab_SYS_TIMEOUT:0000000000000000 memp_tab_SYS_TIMEOUT
+     /tmp/ccim3mpb.s:759    .bss.memp_tab_TCPIP_MSG_API:0000000000000000 $d
+     /tmp/ccim3mpb.s:762    .bss.memp_tab_TCPIP_MSG_API:0000000000000000 memp_tab_TCPIP_MSG_API
+     /tmp/ccim3mpb.s:765    .bss.memp_tab_TCPIP_MSG_INPKT:0000000000000000 $d
+     /tmp/ccim3mpb.s:768    .bss.memp_tab_TCPIP_MSG_INPKT:0000000000000000 memp_tab_TCPIP_MSG_INPKT
+     /tmp/ccim3mpb.s:771    .bss.memp_tab_TCP_PCB:0000000000000000 $d
+     /tmp/ccim3mpb.s:774    .bss.memp_tab_TCP_PCB:0000000000000000 memp_tab_TCP_PCB
+     /tmp/ccim3mpb.s:777    .bss.memp_tab_TCP_PCB_LISTEN:0000000000000000 $d
+     /tmp/ccim3mpb.s:780    .bss.memp_tab_TCP_PCB_LISTEN:0000000000000000 memp_tab_TCP_PCB_LISTEN
+     /tmp/ccim3mpb.s:783    .bss.memp_tab_TCP_SEG:0000000000000000 $d
+     /tmp/ccim3mpb.s:786    .bss.memp_tab_TCP_SEG:0000000000000000 memp_tab_TCP_SEG
+     /tmp/ccim3mpb.s:789    .bss.memp_tab_UDP_PCB:0000000000000000 $d
+     /tmp/ccim3mpb.s:792    .bss.memp_tab_UDP_PCB:0000000000000000 memp_tab_UDP_PCB
+     /tmp/ccim3mpb.s:795    .rodata.memp_FRAG_PBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:804    .rodata.memp_NETBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:813    .rodata.memp_NETCONN:0000000000000000 $d
+     /tmp/ccim3mpb.s:822    .rodata.memp_PBUF:0000000000000000 $d
+     /tmp/ccim3mpb.s:831    .rodata.memp_PBUF_POOL:0000000000000000 $d
+     /tmp/ccim3mpb.s:840    .rodata.memp_REASSDATA:0000000000000000 $d
+     /tmp/ccim3mpb.s:849    .rodata.memp_SYS_TIMEOUT:0000000000000000 $d
+     /tmp/ccim3mpb.s:858    .rodata.memp_TCPIP_MSG_API:0000000000000000 $d
+     /tmp/ccim3mpb.s:867    .rodata.memp_TCPIP_MSG_INPKT:0000000000000000 $d
+     /tmp/ccim3mpb.s:876    .rodata.memp_TCP_PCB:0000000000000000 $d
+     /tmp/ccim3mpb.s:885    .rodata.memp_TCP_PCB_LISTEN:0000000000000000 $d
+     /tmp/ccim3mpb.s:894    .rodata.memp_TCP_SEG:0000000000000000 $d
+     /tmp/ccim3mpb.s:903    .rodata.memp_UDP_PCB:0000000000000000 $d
+     /tmp/ccim3mpb.s:912    .rodata.memp_pools:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+sys_arch_protect
+sys_arch_unprotect
+ARM GAS  /tmp/ccim3mpb.s 			page 29
+
+
+printf
